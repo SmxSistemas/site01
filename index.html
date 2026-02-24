@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMX Sistemas e Soluções</title>
+    <title>SMX Sistemas - Soluções Tecnológicas Integradas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Supabase JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         /* Reset e estilos gerais */
         * {
@@ -21,6 +25,8 @@
             --light-color: #f8f9fa;
             --dark-color: #343a40;
             --gray-color: #6c757d;
+            --success-color: #28a745;
+            --error-color: #dc3545;
             --transition: all 0.3s ease;
         }
         
@@ -116,6 +122,56 @@
             color: white;
         }
         
+        /* Alertas de notificação */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .close-alert {
+            cursor: pointer;
+            font-size: 1.2rem;
+            opacity: 0.7;
+            transition: var(--transition);
+        }
+        
+        .close-alert:hover {
+            opacity: 1;
+        }
+        
         /* Header e Navegação */
         header {
             background-color: white;
@@ -195,7 +251,7 @@
         
         /* Hero Section */
         .hero {
-            background: linear-gradient(rgba(0, 51, 102, 0.9), rgba(0, 51, 102, 0.8)), url('https://images.unsplash.com/photo-1450101499163-c8848c66ca85?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80');
+            background: linear-gradient(rgba(0, 51, 102, 0.9), rgba(0, 51, 102, 0.8)), url('https://images.unsplash.com/photo-1450101499163-c8848c66ca85?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80');
             background-size: cover;
             background-position: center;
             color: white;
@@ -311,9 +367,14 @@
         }
         
         /* Contato */
+        .contato {
+            background-color: white;
+        }
+        
         .contato-container {
             display: flex;
             gap: 50px;
+            margin-top: 50px;
         }
         
         .contato-info {
@@ -361,6 +422,37 @@
             border-color: var(--secondary-color);
             outline: none;
             box-shadow: 0 0 0 3px rgba(0, 168, 232, 0.1);
+        }
+        
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .form-status {
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        
+        /* Loading spinner */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
         
         /* Footer */
@@ -528,7 +620,7 @@
     <header>
         <div class="container header-container">
             <div class="logo">
-                <h1>SMX <span>Sistemas e Soluções Ltda</span></h1>
+                <h1>SMX <span>Sistemas</span></h1>
             </div>
             <div class="mobile-menu" id="mobile-menu">
                 <i class="fas fa-bars"></i>
@@ -639,6 +731,7 @@
     <section class="contato" id="contato">
         <div class="container">
             <h2>Entre em Contato</h2>
+            <div id="alert-container"></div>
             <div class="contato-container">
                 <div class="contato-info">
                     <h3>Vamos conversar sobre seu projeto?</h3>
@@ -656,7 +749,7 @@
                         <i class="fas fa-phone"></i>
                         <div>
                             <h4>Telefone</h4>
-                            <p>(11) 96412-1013</p>
+                            <p>(11) 9999-9999</p>
                         </div>
                     </div>
                     
@@ -670,14 +763,14 @@
                 </div>
                 
                 <div class="contato-form">
-                    <form id="form-contato">
+                    <form id="form-contato" onsubmit="return false;">
                         <div class="form-group">
-                            <label for="nome">Nome Completo</label>
+                            <label for="nome">Nome Completo *</label>
                             <input type="text" id="nome" class="form-control" required>
                         </div>
                         
                         <div class="form-group">
-                            <label for="email">E-mail</label>
+                            <label for="email">E-mail *</label>
                             <input type="email" id="email" class="form-control" required>
                         </div>
                         
@@ -692,11 +785,15 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="mensagem">Mensagem</label>
+                            <label for="mensagem">Mensagem *</label>
                             <textarea id="mensagem" class="form-control" rows="5" required></textarea>
                         </div>
                         
-                        <button type="submit" class="btn">Enviar Mensagem</button>
+                        <button type="submit" id="btn-enviar" class="btn">
+                            <span class="btn-text">Enviar Mensagem</span>
+                        </button>
+                        
+                        <div class="form-status" id="form-status"></div>
                     </form>
                 </div>
             </div>
@@ -745,69 +842,193 @@
             </div>
             
             <div class="copyright">
-                <p>&copy; 2023 SMX Sistemas. Todos os direitos reservados.</p>
+                <p>&copy; 2024 SMX Sistemas. Todos os direitos reservados.</p>
             </div>
         </div>
     </footer>
 
     <script>
-        // Menu responsivo
-        document.getElementById('mobile-menu').addEventListener('click', function() {
-            const nav = document.getElementById('main-nav');
-            nav.classList.toggle('mobile-nav');
-            
-            // Alterar ícone do menu
-            const icon = this.querySelector('i');
-            if (icon.classList.contains('fa-bars')) {
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-times');
-            } else {
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-bars');
-            }
-        });
+        // ============================================
+        // CONFIGURAÇÃO DO SUPABASE
+        // ============================================
+        // ATENÇÃO: Substitua com suas credenciais do Supabase
+        const SUPABASE_URL = 'https://lwozvwtnwiqkeaybveud.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_chX-zJ-EiNd7BJUsWIrfjw_JlQ8Nh9H';
         
-        // Fechar menu ao clicar em um link (para mobile)
-        document.querySelectorAll('#main-nav a').forEach(link => {
-            link.addEventListener('click', function() {
-                const nav = document.getElementById('main-nav');
-                const icon = document.querySelector('#mobile-menu i');
+        // Inicializar cliente Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // ============================================
+        // VARIÁVEIS GLOBAIS
+        // ============================================
+        let isSubmitting = false;
+        
+        // ============================================
+        // FUNÇÕES DE UTILIDADE
+        // ============================================
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alert-container');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `
+                <div>
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+                <span class="close-alert" onclick="this.parentElement.remove()">&times;</span>
+            `;
+            
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alertDiv);
+            
+            // Auto-remover após 5 segundos
+            setTimeout(() => {
+                if (alertDiv.parentElement) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+        
+        function setLoading(isLoading) {
+            const btn = document.getElementById('btn-enviar');
+            const btnText = btn.querySelector('.btn-text');
+            
+            if (isLoading) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="loading"></span>Enviando...';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = '<span class="btn-text">Enviar Mensagem</span>';
+            }
+        }
+        
+        // ============================================
+        // FUNÇÃO PRINCIPAL DE ENVIO DO FORMULÁRIO
+        // ============================================
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            if (isSubmitting) return;
+            
+            // Validar campos obrigatórios
+            const nome = document.getElementById('nome').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const mensagem = document.getElementById('mensagem').value.trim();
+            
+            if (!nome || !email || !mensagem) {
+                showAlert('Por favor, preencha todos os campos obrigatórios!', 'error');
+                return;
+            }
+            
+            if (!email.includes('@') || !email.includes('.')) {
+                showAlert('Por favor, digite um e-mail válido!', 'error');
+                return;
+            }
+            
+            isSubmitting = true;
+            setLoading(true);
+            
+            try {
+                // Coletar dados do formulário
+                const formData = {
+                    name: nome,
+                    email: email,
+                    company: document.getElementById('empresa').value.trim() || null,
+                    phone: document.getElementById('telefone').value.trim() || null,
+                    message: mensagem,
+                    status: 'pending',
+                    created_at: new Date().toISOString()
+                };
                 
-                if (nav.classList.contains('mobile-nav')) {
-                    nav.classList.remove('mobile-nav');
+                console.log('Enviando dados para o Supabase:', formData);
+                
+                // Inserir no Supabase
+                const { data, error } = await supabase
+                    .from('contacts')
+                    .insert([formData])
+                    .select();
+                
+                if (error) {
+                    console.error('Erro detalhado do Supabase:', error);
+                    throw new Error(error.message);
+                }
+                
+                console.log('Resposta do Supabase:', data);
+                
+                // Sucesso!
+                showAlert('Mensagem enviada com sucesso! Entraremos em contato em breve.', 'success');
+                
+                // Limpar formulário
+                document.getElementById('form-contato').reset();
+                
+            } catch (error) {
+                console.error('Erro ao enviar mensagem:', error);
+                
+                let errorMessage = 'Erro ao enviar mensagem. ';
+                
+                if (error.message.includes('permission') || error.message.includes('policy')) {
+                    errorMessage += 'Verifique as políticas de segurança do Supabase.';
+                } else if (error.message.includes('connection')) {
+                    errorMessage += 'Problema de conexão com o servidor.';
+                } else {
+                    errorMessage += 'Tente novamente mais tarde.';
+                }
+                
+                showAlert(errorMessage, 'error');
+                
+            } finally {
+                isSubmitting = false;
+                setLoading(false);
+            }
+        }
+        
+        // ============================================
+        // FUNÇÕES DE NAVEGAÇÃO E MENU
+        // ============================================
+        function setupNavigation() {
+            // Menu responsivo
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mainNav = document.getElementById('main-nav');
+            
+            mobileMenu.addEventListener('click', function() {
+                const nav = document.getElementById('main-nav');
+                nav.classList.toggle('mobile-nav');
+                
+                const icon = this.querySelector('i');
+                if (icon.classList.contains('fa-bars')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                } else {
                     icon.classList.remove('fa-times');
                     icon.classList.add('fa-bars');
                 }
             });
-        });
+            
+            // Fechar menu ao clicar em um link
+            document.querySelectorAll('#main-nav a').forEach(link => {
+                link.addEventListener('click', function() {
+                    const nav = document.getElementById('main-nav');
+                    const icon = document.querySelector('#mobile-menu i');
+                    
+                    if (nav.classList.contains('mobile-nav')) {
+                        nav.classList.remove('mobile-nav');
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                });
+            });
+            
+            // Adicionar sombra ao header ao rolar
+            window.addEventListener('scroll', function() {
+                const header = document.querySelector('header');
+                if (window.scrollY > 50) {
+                    header.style.boxShadow = '0 5px 20px rgba(0, 0, 0, 0.1)';
+                } else {
+                    header.style.boxShadow = '0 2px 15px rgba(0, 0, 0, 0.1)';
+                }
+            });
+        }
         
-        // Formulário de contato
-        document.getElementById('form-contato').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Coletar dados do formulário
-            const nome = document.getElementById('nome').value;
-            const email = document.getElementById('email').value;
-            const empresa = document.getElementById('empresa').value;
-            const telefone = document.getElementById('telefone').value;
-            const mensagem = document.getElementById('mensagem').value;
-            
-            // Simular envio do formulário
-            alert(`Obrigado, ${nome}! Sua mensagem foi enviada com sucesso. Entraremos em contato em breve.`);
-            
-            // Limpar formulário
-            this.reset();
-        });
-        
-        // Adicionar sombra ao header ao rolar a página
-        window.addEventListener('scroll', function() {
-            const header = document.querySelector('header');
-            if (window.scrollY > 50) {
-                header.style.boxShadow = '0 5px 20px rgba(0, 0, 0, 0.1)';
-            } else {
-                header.style.boxShadow = '0 2px 15px rgba(0, 0, 0, 0.1)';
-            }
-        });
-    </script>
-</body>
-</html>
+        // ============================================
+        // FUNÇÃO DE TESTE DA CONEXÃO
+        // ===========================================

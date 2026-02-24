@@ -1,0 +1,7 @@
+smx-sistemas-site/
+├── index.html
+├── supabase.js
+├── .env (para desenvolvimento local)
+├── README.md
+└── assets/
+    └── images/ (opcional)
