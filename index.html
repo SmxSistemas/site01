@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-        /* Reset e estilos gerais */
+        /* Seus estilos existentes - mantenha os mesmos */
         * {
             margin: 0;
             padding: 0;
@@ -156,6 +156,12 @@
             border: 1px solid #f5c6cb;
         }
         
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
         .alert i {
             margin-right: 10px;
             font-size: 1.2rem;
@@ -172,7 +178,7 @@
             opacity: 1;
         }
         
-        /* Header e Navegação */
+        /* Header e Navegação - mantenha seus estilos existentes */
         header {
             background-color: white;
             box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
@@ -455,6 +461,46 @@
             cursor: not-allowed;
         }
         
+        /* Debug Panel */
+        .debug-panel {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .debug-panel h4 {
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .debug-log {
+            color: #0c5460;
+            margin: 5px 0;
+            border-left: 3px solid #17a2b8;
+            padding-left: 10px;
+        }
+        
+        .debug-error {
+            color: #721c24;
+            margin: 5px 0;
+            border-left: 3px solid #dc3545;
+            padding-left: 10px;
+        }
+        
+        .debug-success {
+            color: #155724;
+            margin: 5px 0;
+            border-left: 3px solid #28a745;
+            padding-left: 10px;
+        }
+        
         /* Footer */
         footer {
             background-color: var(--primary-color);
@@ -616,7 +662,7 @@
     </style>
 </head>
 <body>
-    <!-- Header e Navegação -->
+    <!-- Header e Navegação - mantenha igual -->
     <header>
         <div class="container header-container">
             <div class="logo">
@@ -637,7 +683,7 @@
         </div>
     </header>
 
-    <!-- Hero Section -->
+    <!-- Hero Section - mantenha igual -->
     <section class="hero" id="inicio">
         <div class="container">
             <h1>Soluções Tecnológicas para o Futuro do seu Negócio</h1>
@@ -649,7 +695,7 @@
         </div>
     </section>
 
-    <!-- Sobre a Empresa -->
+    <!-- Sobre a Empresa - mantenha igual -->
     <section class="sobre" id="sobre">
         <div class="container">
             <h2>Sobre a SMX Sistemas</h2>
@@ -668,7 +714,7 @@
         </div>
     </section>
 
-    <!-- Serviços -->
+    <!-- Serviços - mantenha igual -->
     <section class="servicos" id="servicos">
         <div class="container">
             <h2>Nossos Serviços</h2>
@@ -698,7 +744,7 @@
         </div>
     </section>
 
-    <!-- Diferenciais -->
+    <!-- Diferenciais - mantenha igual -->
     <section class="diferenciais" id="diferenciais">
         <div class="container">
             <h2>Nossos Diferenciais</h2>
@@ -727,11 +773,20 @@
         </div>
     </section>
 
-    <!-- Contato -->
+    <!-- Contato - VERSÃO CORRIGIDA -->
     <section class="contato" id="contato">
         <div class="container">
             <h2>Entre em Contato</h2>
             <div id="alert-container"></div>
+            
+            <!-- PAINEL DE DEBUG (visível apenas para desenvolvimento) -->
+            <div class="debug-panel" id="debugPanel">
+                <h4>🔍 Painel de Debug do Supabase</h4>
+                <div id="debugLogs">
+                    <div class="debug-log">✅ Sistema iniciado. Configure suas credenciais do Supabase.</div>
+                </div>
+            </div>
+            
             <div class="contato-container">
                 <div class="contato-info">
                     <h3>Vamos conversar sobre seu projeto?</h3>
@@ -800,7 +855,7 @@
         </div>
     </section>
 
-    <!-- Footer -->
+    <!-- Footer - mantenha igual -->
     <footer>
         <div class="container">
             <div class="footer-container">
@@ -849,225 +904,89 @@
 
     <script>
         // ============================================
-        // CONFIGURAÇÃO DO SUPABASE - SUBSTITUA AQUI!
+        // CONFIGURAÇÃO DO SUPABASE - COLE SUAS CREDENCIAIS AQUI!
         // ============================================
-        // PASSO 1: Crie uma conta gratuita em https://supabase.com
-        // PASSO 2: Crie um novo projeto
-        // PASSO 3: Vá em Project Settings > API
-        // PASSO 4: Copie a URL e a Anon Key
-        // PASSO 5: Cole abaixo:
+        const SUPABASE_URL = 'https://seu-projeto.supabase.co'; // 🔴 COLE SUA URL AQUI
+        const SUPABASE_ANON_KEY = 'sua-chave-anon-aqui'; // 🔴 COLE SUA CHAVE ANON AQUI
         
-        const SUPABASE_URL = 'https://seu-projeto.supabase.co'; // COLE SUA URL AQUI
-        const SUPABASE_ANON_KEY = 'sua-chave-anon-aqui'; // COLE SUA CHAVE ANON AQUI
+        // ============================================
+        // FUNÇÃO PARA ADICIONAR LOGS NO PAINEL DE DEBUG
+        // ============================================
+        function addDebugLog(message, type = 'log') {
+            const debugLogs = document.getElementById('debugLogs');
+            if (!debugLogs) return;
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = type === 'error' ? 'debug-error' : (type === 'success' ? 'debug-success' : 'debug-log');
+            
+            const timestamp = new Date().toLocaleTimeString();
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            
+            debugLogs.appendChild(logEntry);
+            debugLogs.scrollTop = debugLogs.scrollHeight;
+            
+            console.log(`[DEBUG] ${message}`);
+        }
         
         // ============================================
         // INICIALIZAÇÃO DO SUPABASE
         // ============================================
         let supabase = null;
         
-        // Verificar se as credenciais foram configuradas
-        if (SUPABASE_URL === 'https://seu-projeto.supabase.co' || SUPABASE_ANON_KEY === 'sua-chave-anon-aqui') {
-            console.warn('⚠️ ATENÇÃO: Configure suas credenciais do Supabase no arquivo!');
-            // Criar um cliente simulado para não quebrar o site
-            supabase = {
-                from: () => ({
-                    insert: () => Promise.resolve({ 
-                        data: [{ id: 1, name: 'Teste' }], 
-                        error: null 
+        function initSupabase() {
+            addDebugLog('Inicializando cliente Supabase...');
+            
+            // Verificar se as credenciais foram configuradas
+            if (SUPABASE_URL === 'https://seu-projeto.supabase.co' || SUPABASE_ANON_KEY === 'sua-chave-anon-aqui') {
+                addDebugLog('⚠️ CREDENCIAIS NÃO CONFIGURADAS! Edite o arquivo e cole suas credenciais.', 'error');
+                addDebugLog('📌 Instruções: https://supabase.com/dashboard/project/_/settings/api', 'log');
+                
+                // Criar cliente simulado para teste
+                supabase = {
+                    from: (table) => ({
+                        insert: (data) => {
+                            addDebugLog(`📝 Modo simulado: Inserindo em ${table}: ` + JSON.stringify(data), 'log');
+                            return Promise.resolve({ 
+                                data: [{ id: 1, ...data[0] }], 
+                                error: null 
+                            });
+                        },
+                        select: () => ({
+                            data: [],
+                            error: null
+                        })
                     })
-                })
-            };
-        } else {
-            // Inicializar cliente real do Supabase
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            console.log('✅ Cliente Supabase inicializado com sucesso!');
+                };
+                
+                addDebugLog('✅ Usando MODO SIMULADO (sem banco de dados real)', 'success');
+                return supabase;
+            }
+            
+            try {
+                // Inicializar cliente real do Supabase
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                    auth: {
+                        persistSession: true,
+                        autoRefreshToken: true,
+                    }
+                });
+                
+                addDebugLog('✅ Cliente Supabase inicializado com sucesso!', 'success');
+                addDebugLog(`🌐 Conectado ao projeto: ${SUPABASE_URL}`, 'log');
+                
+                return supabase;
+            } catch (error) {
+                addDebugLog(`❌ Erro ao inicializar Supabase: ${error.message}`, 'error');
+                return null;
+            }
         }
+        
+        // Inicializar
+        supabase = initSupabase();
         
         // ============================================
         // VARIÁVEIS GLOBAIS
         // ============================================
         let isSubmitting = false;
         
-        // ============================================
-        // FUNÇÕES DE UTILIDADE
-        // ============================================
-        function showAlert(message, type = 'success') {
-            const alertContainer = document.getElementById('alert-container');
-            if (!alertContainer) return;
-            
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type}`;
-            alertDiv.innerHTML = `
-                <div>
-                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-                    <span>${message}</span>
-                </div>
-                <span class="close-alert" onclick="this.parentElement.remove()">&times;</span>
-            `;
-            
-            alertContainer.innerHTML = '';
-            alertContainer.appendChild(alertDiv);
-            
-            // Scroll até o alerta
-            alertDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            
-            // Auto-remover após 5 segundos
-            setTimeout(() => {
-                if (alertDiv.parentElement) {
-                    alertDiv.remove();
-                }
-            }, 5000);
-        }
-        
-        function setLoading(isLoading) {
-            const btn = document.getElementById('btn-enviar');
-            if (!btn) return;
-            
-            if (isLoading) {
-                btn.disabled = true;
-                btn.innerHTML = '<span class="loading"></span>Enviando...';
-            } else {
-                btn.disabled = false;
-                btn.innerHTML = '<span class="btn-text">Enviar Mensagem</span>';
-            }
-        }
-        
-        // ============================================
-        // FUNÇÃO PRINCIPAL DE ENVIO DO FORMULÁRIO
-        // ============================================
-        async function handleFormSubmit(event) {
-            event.preventDefault();
-            console.log('Formulário enviado!'); // Log para debug
-            
-            if (isSubmitting) {
-                console.log('Já está enviando...');
-                return;
-            }
-            
-            // Validar campos obrigatórios
-            const nome = document.getElementById('nome').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const mensagem = document.getElementById('mensagem').value.trim();
-            
-            console.log('Campos:', { nome, email, mensagem }); // Log para debug
-            
-            if (!nome || !email || !mensagem) {
-                showAlert('Por favor, preencha todos os campos obrigatórios!', 'error');
-                return;
-            }
-            
-            // Validar email
-            if (!email.includes('@') || !email.includes('.')) {
-                showAlert('Por favor, digite um e-mail válido!', 'error');
-                return;
-            }
-            
-            isSubmitting = true;
-            setLoading(true);
-            
-            try {
-                // Coletar dados do formulário
-                const formData = {
-                    name: nome,
-                    email: email.toLowerCase(),
-                    company: document.getElementById('empresa').value.trim() || null,
-                    phone: document.getElementById('telefone').value.trim() || null,
-                    message: mensagem,
-                    status: 'pending'
-                };
-                
-                console.log('📤 Enviando dados:', formData);
-                
-                // Inserir no Supabase
-                const { data, error } = await supabase
-                    .from('contacts')
-                    .insert([formData])
-                    .select();
-                
-                if (error) {
-                    console.error('❌ Erro do Supabase:', error);
-                    
-                    // Mensagens de erro amigáveis
-                    if (error.message?.includes('relation "contacts" does not exist')) {
-                        throw new Error('Tabela "contacts" não existe. Crie a tabela no Supabase primeiro!');
-                    } else if (error.message?.includes('permission denied')) {
-                        throw new Error('Permissão negada. Configure as políticas de segurança no Supabase!');
-                    } else {
-                        throw new Error(error.message || 'Erro ao salvar no banco de dados');
-                    }
-                }
-                
-                console.log('✅ Resposta do Supabase:', data);
-                
-                // Sucesso!
-                showAlert('Mensagem enviada com sucesso! Entraremos em contato em breve.', 'success');
-                
-                // Limpar formulário
-                document.getElementById('form-contato').reset();
-                
-            } catch (error) {
-                console.error('❌ Erro detalhado:', error);
-                
-                let errorMessage = 'Erro ao enviar mensagem. ';
-                
-                if (error.message.includes('tabela') || error.message.includes('table')) {
-                    errorMessage = 'Configure o banco de dados primeiro. Siga as instruções no README.';
-                } else if (error.message.includes('permissão') || error.message.includes('permission')) {
-                    errorMessage = 'Erro de permissão. Configure as políticas RLS no Supabase.';
-                } else {
-                    errorMessage += error.message || 'Tente novamente mais tarde.';
-                }
-                
-                showAlert(errorMessage, 'error');
-                
-            } finally {
-                isSubmitting = false;
-                setLoading(false);
-            }
-        }
-        
-        // ============================================
-        // CONFIGURAÇÃO DO FORMULÁRIO
-        // ============================================
-        function setupForm() {
-            const form = document.getElementById('form-contato');
-            if (form) {
-                // Remover qualquer evento anterior
-                form.removeEventListener('submit', handleFormSubmit);
-                // Adicionar novo evento
-                form.addEventListener('submit', handleFormSubmit);
-                console.log('✅ Evento de submit configurado no formulário');
-            } else {
-                console.error('❌ Formulário não encontrado!');
-            }
-        }
-        
-        // ============================================
-        // FUNÇÕES DE NAVEGAÇÃO E MENU
-        // ============================================
-        function setupNavigation() {
-            // Menu responsivo
-            const mobileMenu = document.getElementById('mobile-menu');
-            const mainNav = document.getElementById('main-nav');
-            
-            if (mobileMenu) {
-                mobileMenu.addEventListener('click', function() {
-                    mainNav.classList.toggle('mobile-nav');
-                    
-                    const icon = this.querySelector('i');
-                    if (icon) {
-                        if (icon.classList.contains('fa-bars')) {
-                            icon.classList.remove('fa-bars');
-                            icon.classList.add('fa-times');
-                        } else {
-                            icon.classList.remove('fa-times');
-                            icon.classList.add('fa-bars');
-                        }
-                    }
-                });
-            }
-            
-            // Fechar menu ao clicar em um link
-            document.querySelectorAll('#main-nav a').forEach(link => {
-                link.addEventListener('click', function() {
-                    const
+        //
