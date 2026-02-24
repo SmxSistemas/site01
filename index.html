@@ -6,7 +6,7 @@
     <title>SMX Sistemas - Soluções Tecnológicas Integradas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Supabase JavaScript -->
+    <!-- Supabase JavaScript via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
@@ -763,7 +763,7 @@
                 </div>
                 
                 <div class="contato-form">
-                    <form id="form-contato" onsubmit="return false;">
+                    <form id="form-contato">
                         <div class="form-group">
                             <label for="nome">Nome Completo *</label>
                             <input type="text" id="nome" class="form-control" required>
@@ -849,14 +849,39 @@
 
     <script>
         // ============================================
-        // CONFIGURAÇÃO DO SUPABASE
+        // CONFIGURAÇÃO DO SUPABASE - SUBSTITUA AQUI!
         // ============================================
-        // ATENÇÃO: Substitua com suas credenciais do Supabase
-        const SUPABASE_URL = 'https://lwozvwtnwiqkeaybveud.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_chX-zJ-EiNd7BJUsWIrfjw_JlQ8Nh9H';
+        // PASSO 1: Crie uma conta gratuita em https://supabase.com
+        // PASSO 2: Crie um novo projeto
+        // PASSO 3: Vá em Project Settings > API
+        // PASSO 4: Copie a URL e a Anon Key
+        // PASSO 5: Cole abaixo:
         
-        // Inicializar cliente Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const SUPABASE_URL = 'https://seu-projeto.supabase.co'; // COLE SUA URL AQUI
+        const SUPABASE_ANON_KEY = 'sua-chave-anon-aqui'; // COLE SUA CHAVE ANON AQUI
+        
+        // ============================================
+        // INICIALIZAÇÃO DO SUPABASE
+        // ============================================
+        let supabase = null;
+        
+        // Verificar se as credenciais foram configuradas
+        if (SUPABASE_URL === 'https://seu-projeto.supabase.co' || SUPABASE_ANON_KEY === 'sua-chave-anon-aqui') {
+            console.warn('⚠️ ATENÇÃO: Configure suas credenciais do Supabase no arquivo!');
+            // Criar um cliente simulado para não quebrar o site
+            supabase = {
+                from: () => ({
+                    insert: () => Promise.resolve({ 
+                        data: [{ id: 1, name: 'Teste' }], 
+                        error: null 
+                    })
+                })
+            };
+        } else {
+            // Inicializar cliente real do Supabase
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log('✅ Cliente Supabase inicializado com sucesso!');
+        }
         
         // ============================================
         // VARIÁVEIS GLOBAIS
@@ -868,6 +893,8 @@
         // ============================================
         function showAlert(message, type = 'success') {
             const alertContainer = document.getElementById('alert-container');
+            if (!alertContainer) return;
+            
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type}`;
             alertDiv.innerHTML = `
@@ -881,6 +908,9 @@
             alertContainer.innerHTML = '';
             alertContainer.appendChild(alertDiv);
             
+            // Scroll até o alerta
+            alertDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
             // Auto-remover após 5 segundos
             setTimeout(() => {
                 if (alertDiv.parentElement) {
@@ -891,7 +921,7 @@
         
         function setLoading(isLoading) {
             const btn = document.getElementById('btn-enviar');
-            const btnText = btn.querySelector('.btn-text');
+            if (!btn) return;
             
             if (isLoading) {
                 btn.disabled = true;
@@ -907,19 +937,26 @@
         // ============================================
         async function handleFormSubmit(event) {
             event.preventDefault();
+            console.log('Formulário enviado!'); // Log para debug
             
-            if (isSubmitting) return;
+            if (isSubmitting) {
+                console.log('Já está enviando...');
+                return;
+            }
             
             // Validar campos obrigatórios
             const nome = document.getElementById('nome').value.trim();
             const email = document.getElementById('email').value.trim();
             const mensagem = document.getElementById('mensagem').value.trim();
             
+            console.log('Campos:', { nome, email, mensagem }); // Log para debug
+            
             if (!nome || !email || !mensagem) {
                 showAlert('Por favor, preencha todos os campos obrigatórios!', 'error');
                 return;
             }
             
+            // Validar email
             if (!email.includes('@') || !email.includes('.')) {
                 showAlert('Por favor, digite um e-mail válido!', 'error');
                 return;
@@ -932,15 +969,14 @@
                 // Coletar dados do formulário
                 const formData = {
                     name: nome,
-                    email: email,
+                    email: email.toLowerCase(),
                     company: document.getElementById('empresa').value.trim() || null,
                     phone: document.getElementById('telefone').value.trim() || null,
                     message: mensagem,
-                    status: 'pending',
-                    created_at: new Date().toISOString()
+                    status: 'pending'
                 };
                 
-                console.log('Enviando dados para o Supabase:', formData);
+                console.log('📤 Enviando dados:', formData);
                 
                 // Inserir no Supabase
                 const { data, error } = await supabase
@@ -949,11 +985,19 @@
                     .select();
                 
                 if (error) {
-                    console.error('Erro detalhado do Supabase:', error);
-                    throw new Error(error.message);
+                    console.error('❌ Erro do Supabase:', error);
+                    
+                    // Mensagens de erro amigáveis
+                    if (error.message?.includes('relation "contacts" does not exist')) {
+                        throw new Error('Tabela "contacts" não existe. Crie a tabela no Supabase primeiro!');
+                    } else if (error.message?.includes('permission denied')) {
+                        throw new Error('Permissão negada. Configure as políticas de segurança no Supabase!');
+                    } else {
+                        throw new Error(error.message || 'Erro ao salvar no banco de dados');
+                    }
                 }
                 
-                console.log('Resposta do Supabase:', data);
+                console.log('✅ Resposta do Supabase:', data);
                 
                 // Sucesso!
                 showAlert('Mensagem enviada com sucesso! Entraremos em contato em breve.', 'success');
@@ -962,16 +1006,16 @@
                 document.getElementById('form-contato').reset();
                 
             } catch (error) {
-                console.error('Erro ao enviar mensagem:', error);
+                console.error('❌ Erro detalhado:', error);
                 
                 let errorMessage = 'Erro ao enviar mensagem. ';
                 
-                if (error.message.includes('permission') || error.message.includes('policy')) {
-                    errorMessage += 'Verifique as políticas de segurança do Supabase.';
-                } else if (error.message.includes('connection')) {
-                    errorMessage += 'Problema de conexão com o servidor.';
+                if (error.message.includes('tabela') || error.message.includes('table')) {
+                    errorMessage = 'Configure o banco de dados primeiro. Siga as instruções no README.';
+                } else if (error.message.includes('permissão') || error.message.includes('permission')) {
+                    errorMessage = 'Erro de permissão. Configure as políticas RLS no Supabase.';
                 } else {
-                    errorMessage += 'Tente novamente mais tarde.';
+                    errorMessage += error.message || 'Tente novamente mais tarde.';
                 }
                 
                 showAlert(errorMessage, 'error');
@@ -983,6 +1027,22 @@
         }
         
         // ============================================
+        // CONFIGURAÇÃO DO FORMULÁRIO
+        // ============================================
+        function setupForm() {
+            const form = document.getElementById('form-contato');
+            if (form) {
+                // Remover qualquer evento anterior
+                form.removeEventListener('submit', handleFormSubmit);
+                // Adicionar novo evento
+                form.addEventListener('submit', handleFormSubmit);
+                console.log('✅ Evento de submit configurado no formulário');
+            } else {
+                console.error('❌ Formulário não encontrado!');
+            }
+        }
+        
+        // ============================================
         // FUNÇÕES DE NAVEGAÇÃO E MENU
         // ============================================
         function setupNavigation() {
@@ -990,45 +1050,24 @@
             const mobileMenu = document.getElementById('mobile-menu');
             const mainNav = document.getElementById('main-nav');
             
-            mobileMenu.addEventListener('click', function() {
-                const nav = document.getElementById('main-nav');
-                nav.classList.toggle('mobile-nav');
-                
-                const icon = this.querySelector('i');
-                if (icon.classList.contains('fa-bars')) {
-                    icon.classList.remove('fa-bars');
-                    icon.classList.add('fa-times');
-                } else {
-                    icon.classList.remove('fa-times');
-                    icon.classList.add('fa-bars');
-                }
-            });
+            if (mobileMenu) {
+                mobileMenu.addEventListener('click', function() {
+                    mainNav.classList.toggle('mobile-nav');
+                    
+                    const icon = this.querySelector('i');
+                    if (icon) {
+                        if (icon.classList.contains('fa-bars')) {
+                            icon.classList.remove('fa-bars');
+                            icon.classList.add('fa-times');
+                        } else {
+                            icon.classList.remove('fa-times');
+                            icon.classList.add('fa-bars');
+                        }
+                    }
+                });
+            }
             
             // Fechar menu ao clicar em um link
             document.querySelectorAll('#main-nav a').forEach(link => {
                 link.addEventListener('click', function() {
-                    const nav = document.getElementById('main-nav');
-                    const icon = document.querySelector('#mobile-menu i');
-                    
-                    if (nav.classList.contains('mobile-nav')) {
-                        nav.classList.remove('mobile-nav');
-                        icon.classList.remove('fa-times');
-                        icon.classList.add('fa-bars');
-                    }
-                });
-            });
-            
-            // Adicionar sombra ao header ao rolar
-            window.addEventListener('scroll', function() {
-                const header = document.querySelector('header');
-                if (window.scrollY > 50) {
-                    header.style.boxShadow = '0 5px 20px rgba(0, 0, 0, 0.1)';
-                } else {
-                    header.style.boxShadow = '0 2px 15px rgba(0, 0, 0, 0.1)';
-                }
-            });
-        }
-        
-        // ============================================
-        // FUNÇÃO DE TESTE DA CONEXÃO
-        // ===========================================
+                    const
